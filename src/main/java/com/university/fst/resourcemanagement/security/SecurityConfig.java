@@ -26,7 +26,6 @@ public class SecurityConfig {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
-    // ✅ BCrypt pour hacher les mots de passe
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -53,7 +52,10 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Endpoints publics (pas de token requis)
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/fournisseurs/inscription").permitAll()
+                        // Tout le reste nécessite une authentification
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
