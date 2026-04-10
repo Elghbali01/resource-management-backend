@@ -36,56 +36,54 @@ public class DataInitializer implements CommandLineRunner {
             System.out.println(" Admin créé : issamelghbali@gmail.com / Admin1234");
         }
 
-        // Admin 2 (celui demandé en plus)
-        if (!userRepository.existsByEmail("admin2@fst.ma")) {
-            User admin2 = new User();
-            admin2.setNom("Bennani");
-            admin2.setPrenom("Fatima");
-            admin2.setEmail("admin2@fst.ma");
-            admin2.setPassword(passwordEncoder.encode("Admin@5678"));
-            admin2.setRole(Role.ADMIN);
-            admin2.setStatus(Status.ACTIVE);
-            userRepository.save(admin2);
-            System.out.println(" Admin 2 créé : admin2@fst.ma / Admin@5678");
-        }
-
         //  Chef Département
-        if (!userRepository.existsByEmail("chef@fst.ma")) {
+        if (!userRepository.existsByEmail("issamChefDepa@gmail.com")) {
             User chef = new User();
-            chef.setNom("Idrissi");
-            chef.setPrenom("Youssef");
-            chef.setEmail("chef@fst.ma");
+            chef.setNom("Chef");
+            chef.setPrenom("Departement");
+            chef.setEmail("issamChefDepa@gmail.com");
             chef.setPassword(passwordEncoder.encode("Chef@1234"));
             chef.setRole(Role.CHEF_DEPARTEMENT);
             chef.setStatus(Status.ACTIVE);
             userRepository.save(chef);
-            System.out.println(" Chef département créé : chef@fst.ma / Chef@1234");
+            System.out.println(" Chef département créé : issamChefDepa@gmail.com / Chef@1234");
         }
 
         //  Enseignant
-        if (!userRepository.existsByEmail("enseignant@fst.ma")) {
+        if (!userRepository.existsByEmail("issamProf@gmail.com")) {
             User enseignant = new User();
-            enseignant.setNom("Moussaoui");
-            enseignant.setPrenom("Amine");
-            enseignant.setEmail("enseignant@fst.ma");
-            enseignant.setPassword(passwordEncoder.encode("Ens@1234"));
+            enseignant.setNom("Issam");
+            enseignant.setPrenom("Prof");
+            enseignant.setEmail("issamProf@gmail.com");
+            enseignant.setPassword(passwordEncoder.encode("Prof@1234"));
             enseignant.setRole(Role.ENSEIGNANT);
             enseignant.setStatus(Status.ACTIVE);
             userRepository.save(enseignant);
-            System.out.println(" Enseignant créé : enseignant@fst.ma / Ens@1234");
+            System.out.println(" Enseignant créé : issamProf@gmail.com / Prof@1234");
         }
-
         //  Responsable Ressource
-        if (!userRepository.existsByEmail("responsable@fst.ma")) {
+        if (!userRepository.existsByEmail("issamRRessource@gmail.com")) {
             User responsable = new User();
-            responsable.setNom("Chraibi");
-            responsable.setPrenom("Sara");
-            responsable.setEmail("responsable@fst.ma");
+            responsable.setNom("Responsable");
+            responsable.setPrenom("Ressource");
+            responsable.setEmail("issamRRessource@gmail.com");
             responsable.setPassword(passwordEncoder.encode("Resp@1234"));
             responsable.setRole(Role.RESPONSABLE_RESOURCE);
             responsable.setStatus(Status.ACTIVE);
             userRepository.save(responsable);
-            System.out.println(" Responsable créé : responsable@fst.ma / Resp@1234");
+            System.out.println(" Responsable créé : issamRRessource@gmail.com / Resp@1234");
+        }
+        //  Technicien
+        if (!userRepository.existsByEmail("issamTechnicien@gmail.com")) {
+            User responsable = new User();
+            responsable.setNom("Issam");
+            responsable.setPrenom("Tech");
+            responsable.setEmail("issamTechnicien@gmail.com");
+            responsable.setPassword(passwordEncoder.encode("Tech@1234"));
+            responsable.setRole(Role.TECHNICIEN);
+            responsable.setStatus(Status.ACTIVE);
+            userRepository.save(responsable);
+            System.out.println(" Responsable créé : issamTechnicien@gmail.com / Tech@1234");
         }
 
         //  User INACTIVE pour tester le rejet
