@@ -24,16 +24,16 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
         //  Admin 1
-        if (!userRepository.existsByEmail("admin@fst.ma")) {
+        if (!userRepository.existsByEmail("issamelghbali@gmail.com")) {
             User admin = new User();
-            admin.setNom("Alaoui");
-            admin.setPrenom("Mohamed");
-            admin.setEmail("admin@fst.ma");
-            admin.setPassword(passwordEncoder.encode("Admin@1234"));
+            admin.setNom("Elghbali");
+            admin.setPrenom("Issam");
+            admin.setEmail("issamelghbali@gmail.com");
+            admin.setPassword(passwordEncoder.encode("Admin1234"));
             admin.setRole(Role.ADMIN);
             admin.setStatus(Status.ACTIVE);
             userRepository.save(admin);
-            System.out.println("✅ Admin créé : admin@fst.ma / Admin@1234");
+            System.out.println(" Admin créé : issamelghbali@gmail.com / Admin1234");
         }
 
         // Admin 2 (celui demandé en plus)
@@ -46,7 +46,7 @@ public class DataInitializer implements CommandLineRunner {
             admin2.setRole(Role.ADMIN);
             admin2.setStatus(Status.ACTIVE);
             userRepository.save(admin2);
-            System.out.println("✅ Admin 2 créé : admin2@fst.ma / Admin@5678");
+            System.out.println(" Admin 2 créé : admin2@fst.ma / Admin@5678");
         }
 
         //  Chef Département
@@ -59,7 +59,7 @@ public class DataInitializer implements CommandLineRunner {
             chef.setRole(Role.CHEF_DEPARTEMENT);
             chef.setStatus(Status.ACTIVE);
             userRepository.save(chef);
-            System.out.println("✅ Chef département créé : chef@fst.ma / Chef@1234");
+            System.out.println(" Chef département créé : chef@fst.ma / Chef@1234");
         }
 
         //  Enseignant
@@ -72,7 +72,7 @@ public class DataInitializer implements CommandLineRunner {
             enseignant.setRole(Role.ENSEIGNANT);
             enseignant.setStatus(Status.ACTIVE);
             userRepository.save(enseignant);
-            System.out.println("✅ Enseignant créé : enseignant@fst.ma / Ens@1234");
+            System.out.println(" Enseignant créé : enseignant@fst.ma / Ens@1234");
         }
 
         //  Responsable Ressource
@@ -85,7 +85,7 @@ public class DataInitializer implements CommandLineRunner {
             responsable.setRole(Role.RESPONSABLE_RESOURCE);
             responsable.setStatus(Status.ACTIVE);
             userRepository.save(responsable);
-            System.out.println("✅ Responsable créé : responsable@fst.ma / Resp@1234");
+            System.out.println(" Responsable créé : responsable@fst.ma / Resp@1234");
         }
 
         //  User INACTIVE pour tester le rejet
@@ -98,7 +98,7 @@ public class DataInitializer implements CommandLineRunner {
             inactif.setRole(Role.ENSEIGNANT);
             inactif.setStatus(Status.INACTIVE);
             userRepository.save(inactif);
-            System.out.println("⛔ User inactif créé : inactif@fst.ma / Inactif@1234");
+            System.out.println(" User inactif créé : inactif@fst.ma / Inactif@1234");
         }
     }
 }
