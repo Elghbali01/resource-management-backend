@@ -158,7 +158,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     @Transactional(readOnly = true)
     public List<UserListResponse> listerUtilisateurs() {
         return userRepository.findAll().stream()
-                .filter(u -> u.getRole() != Role.ADMIN && u.getRole() != Role.FOURNISSEUR)
+                .filter(u -> u.getRole() != Role.ADMIN)
                 .map(u -> new UserListResponse(
                         u.getId(),
                         u.getNom(),
