@@ -26,7 +26,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        // Spring Security vérifie email + mot de passe (BCrypt automatiquement)
+
+        // ── 1. Vérification credentials (email + password BCrypt) ─────────────
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(
@@ -41,21 +42,58 @@ public class AuthServiceImpl implements AuthService {
 
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        // Vérification statut ACTIVE
+        // ── 2. Vérification statut ACTIVE ─────────────────────────────────────
         if (!userDetails.isEnabled()) {
             throw new UserInactiveException("Votre compte est désactivé. Contactez l'administrateur.");
         }
 
-        String token = jwtUtils.generateToken(userDetails);
+        String roleReel = userDetails.getRoleStr();
 
-        // on return l'id /nom complect / email et aussi le role !!! (role pour diriger vers leur dashbord)
+        // ── 3. Cas CHEF_DEPARTEMENT — double rôle possible ────────────────────
+        if ("CHEF_DEPARTEMENT".equals(roleReel)) {
+
+            String roleChoisi = request.getRoleChoisi();
+
+            // Étape 1 : le front n'a pas encore envoyé de roleChoisi
+            // → on retourne le flag hasDoubleRole = true SANS token
+            // → le front affiche la popup
+            if (roleChoisi == null || roleChoisi.isBlank()) {
+                return new LoginResponse(
+                        userDetails.getId(),
+                        userDetails.getNom(),
+                        userDetails.getPrenom(),
+                        userDetails.getEmail(),
+                        true   // hasDoubleRole
+                );
+            }
+
+            // Étape 2 : le front a envoyé le roleChoisi après la popup
+            // → on valide que le choix est cohérent
+            if (!roleChoisi.equals("CHEF_DEPARTEMENT") && !roleChoisi.equals("ENSEIGNANT")) {
+                throw new RuntimeException("Rôle choisi invalide. Valeurs acceptées : CHEF_DEPARTEMENT, ENSEIGNANT");
+            }
+
+            // → on génère le token avec le rôle choisi
+            String token = jwtUtils.generateTokenWithRole(userDetails, roleChoisi);
+            return new LoginResponse(
+                    token,
+                    userDetails.getId(),
+                    userDetails.getNom(),
+                    userDetails.getPrenom(),
+                    userDetails.getEmail(),
+                    roleChoisi   // rôle choisi dans la réponse (pas le rôle réel)
+            );
+        }
+
+        // ── 4. Cas normal (tous les autres rôles) ─────────────────────────────
+        String token = jwtUtils.generateToken(userDetails);
         return new LoginResponse(
                 token,
                 userDetails.getId(),
                 userDetails.getNom(),
                 userDetails.getPrenom(),
                 userDetails.getEmail(),
-                userDetails.getRoleStr()
+                roleReel
         );
     }
 }

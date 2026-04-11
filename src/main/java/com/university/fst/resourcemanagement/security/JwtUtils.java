@@ -21,12 +21,33 @@ public class JwtUtils {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
+    // ── Token normal (rôle réel du user) ──────────────────────────────────────
     public String generateToken(UserDetailsImpl userDetails) {
+        return buildToken(
+                userDetails.getUsername(),
+                userDetails.getRoleStr(),
+                userDetails.getNom(),
+                userDetails.getPrenom()
+        );
+    }
+
+    // ── Token avec rôle choisi (popup chef/enseignant) ────────────────────────
+    public String generateTokenWithRole(UserDetailsImpl userDetails, String roleChoisi) {
+        return buildToken(
+                userDetails.getUsername(),
+                roleChoisi,               // on écrase le rôle dans le claim JWT
+                userDetails.getNom(),
+                userDetails.getPrenom()
+        );
+    }
+
+    // ── Builder commun ────────────────────────────────────────────────────────
+    private String buildToken(String email, String role, String nom, String prenom) {
         return Jwts.builder()
-                .setSubject(userDetails.getUsername())
-                .claim("role", userDetails.getRoleStr())
-                .claim("nom", userDetails.getNom())
-                .claim("prenom", userDetails.getPrenom())
+                .setSubject(email)
+                .claim("role", role)
+                .claim("nom", nom)
+                .claim("prenom", prenom)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)

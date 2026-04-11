@@ -16,7 +16,9 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
-    // Fix 3 : @Async => envoi en arrière-plan, plus de retard HTTP
+    // ──────────────────────────────────────────────────────────────────────────
+    // Email existant — fournisseur
+    // ──────────────────────────────────────────────────────────────────────────
     @Async
     public void sendWelcomeEmailToFournisseur(String toEmail,
                                               String nomSociete,
@@ -24,68 +26,108 @@ public class EmailService {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
             helper.setFrom("gestionressourcefst@gmail.com");
             helper.setTo(toEmail);
             helper.setSubject("Bienvenue sur la plateforme – Inscription confirmée");
-
-            // Fix 2 : buildWelcomeHtml utilise la concaténation String classique
-            // (évite les conflits % dans les text blocks Java)
-            String htmlContent = buildWelcomeHtml(nomSociete, toEmail, plainPassword);
-            helper.setText(htmlContent, true);
-
+            helper.setText(buildWelcomeHtml(nomSociete, toEmail, plainPassword), true);
             mailSender.send(message);
-            System.out.println("✅ Email de bienvenue envoyé à : " + toEmail);
-
+            System.out.println("✅ Email fournisseur envoyé à : " + toEmail);
         } catch (MessagingException e) {
-            // Erreur SMTP (mauvais host, port bloqué, auth refusée…)
             System.err.println("❌ MessagingException pour " + toEmail + " : " + e.getMessage());
             e.printStackTrace();
-
         } catch (Exception e) {
-            // Fix 1 : capture les RuntimeException, IllegalArgumentException, etc.
-            // (ex: erreur dans buildWelcomeHtml ou dans .formatted())
-            System.err.println("❌ Erreur inattendue lors de l'envoi email à " + toEmail + " : " + e.getMessage());
+            System.err.println("❌ Erreur inattendue email à " + toEmail + " : " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    // Fix 2 : String concaténée => plus de problème avec %% ou %s
+    // ──────────────────────────────────────────────────────────────────────────
+    // Nouvel email — utilisateur interne (enseignant, chef, technicien, etc.)
+    // ──────────────────────────────────────────────────────────────────────────
+    @Async
+    public void sendWelcomeEmailToUser(String toEmail,
+                                       String nom,
+                                       String prenom,
+                                       String role,
+                                       String plainPassword) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom("gestionressourcefst@gmail.com");
+            helper.setTo(toEmail);
+            helper.setSubject("Bienvenue sur la plateforme FST – Votre compte a été créé");
+            helper.setText(buildUserWelcomeHtml(nom, prenom, role, toEmail, plainPassword), true);
+            mailSender.send(message);
+            System.out.println("✅ Email utilisateur envoyé à : " + toEmail);
+        } catch (MessagingException e) {
+            System.err.println("❌ MessagingException pour " + toEmail + " : " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("❌ Erreur inattendue email à " + toEmail + " : " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // HTML fournisseur (existant, inchangé)
+    // ──────────────────────────────────────────────────────────────────────────
     private String buildWelcomeHtml(String nomSociete, String email, String password) {
         return "<!DOCTYPE html>"
-                + "<html lang='fr'>"
-                + "<head><meta charset='UTF-8'></head>"
+                + "<html lang='fr'><head><meta charset='UTF-8'></head>"
                 + "<body style='font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;'>"
                 + "<div style='max-width: 600px; margin: auto; background: #ffffff;"
-                + "            border-radius: 8px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);'>"
-                + "<h2 style='color: #2c3e50;'>&#127881; F&eacute;licitations, <strong>"
-                + nomSociete
-                + "</strong> !</h2>"
-                + "<p style='color: #555;'>"
-                + "Votre inscription sur la plateforme de gestion des ressources de la FST a &eacute;t&eacute; "
-                + "<strong>valid&eacute;e avec succ&egrave;s</strong>."
-                + "</p>"
+                + "border-radius: 8px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);'>"
+                + "<h2 style='color: #2c3e50;'>&#127881; F&eacute;licitations, <strong>" + nomSociete + "</strong> !</h2>"
+                + "<p style='color: #555;'>Votre inscription sur la plateforme de gestion des ressources de la FST a &eacute;t&eacute; "
+                + "<strong>valid&eacute;e avec succ&egrave;s</strong>.</p>"
                 + "<p style='color: #555;'>Voici vos identifiants de connexion :</p>"
                 + "<table style='border-collapse: collapse; width: 100%; margin: 16px 0;'>"
-                + "<tr>"
-                + "<td style='padding: 10px; background: #ecf0f1; font-weight: bold;'>Email</td>"
-                + "<td style='padding: 10px; background: #ecf0f1;'>" + email + "</td>"
-                + "</tr>"
-                + "<tr>"
-                + "<td style='padding: 10px; font-weight: bold;'>Mot de passe</td>"
-                + "<td style='padding: 10px;'>" + password + "</td>"
-                + "</tr>"
-                + "</table>"
-                + "<p style='color: #e74c3c; font-size: 13px;'>"
-                + "&#9888;&#65039; Pour des raisons de s&eacute;curit&eacute;, nous vous recommandons "
-                + "de changer votre mot de passe d&egrave;s votre premi&egrave;re connexion."
-                + "</p>"
+                + "<tr><td style='padding: 10px; background: #ecf0f1; font-weight: bold;'>Email</td>"
+                + "<td style='padding: 10px; background: #ecf0f1;'>" + email + "</td></tr>"
+                + "<tr><td style='padding: 10px; font-weight: bold;'>Mot de passe</td>"
+                + "<td style='padding: 10px;'>" + password + "</td></tr></table>"
+                + "<p style='color: #e74c3c; font-size: 13px;'>&#9888;&#65039; Pour des raisons de s&eacute;curit&eacute;, "
+                + "nous vous recommandons de changer votre mot de passe d&egrave;s votre premi&egrave;re connexion.</p>"
                 + "<hr style='border: none; border-top: 1px solid #eee; margin: 24px 0;'>"
-                + "<p style='color: #999; font-size: 12px;'>"
-                + "Cet email a &eacute;t&eacute; envoy&eacute; automatiquement. Merci de ne pas y r&eacute;pondre."
-                + "</p>"
-                + "</div>"
-                + "</body>"
-                + "</html>";
+                + "<p style='color: #999; font-size: 12px;'>Cet email a &eacute;t&eacute; envoy&eacute; automatiquement. Merci de ne pas y r&eacute;pondre.</p>"
+                + "</div></body></html>";
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // HTML utilisateur interne
+    // ──────────────────────────────────────────────────────────────────────────
+    private String buildUserWelcomeHtml(String nom, String prenom, String role,
+                                        String email, String password) {
+        String roleLabel = translateRole(role);
+        return "<!DOCTYPE html>"
+                + "<html lang='fr'><head><meta charset='UTF-8'></head>"
+                + "<body style='font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;'>"
+                + "<div style='max-width: 600px; margin: auto; background: #ffffff;"
+                + "border-radius: 8px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);'>"
+                + "<h2 style='color: #2c3e50;'>&#128075; Bienvenue, <strong>" + prenom + " " + nom + "</strong> !</h2>"
+                + "<p style='color: #555;'>Un compte a &eacute;t&eacute; cr&eacute;&eacute; pour vous sur la plateforme "
+                + "de gestion des ressources de la <strong>FST</strong>.</p>"
+                + "<p style='color: #555;'>Votre r&ocirc;le : <strong style='color:#2980b9;'>" + roleLabel + "</strong></p>"
+                + "<p style='color: #555;'>Voici vos identifiants de connexion :</p>"
+                + "<table style='border-collapse: collapse; width: 100%; margin: 16px 0;'>"
+                + "<tr><td style='padding: 10px; background: #ecf0f1; font-weight: bold;'>Email</td>"
+                + "<td style='padding: 10px; background: #ecf0f1;'>" + email + "</td></tr>"
+                + "<tr><td style='padding: 10px; font-weight: bold;'>Mot de passe temporaire</td>"
+                + "<td style='padding: 10px;'>" + password + "</td></tr></table>"
+                + "<p style='color: #e74c3c; font-size: 13px;'>&#9888;&#65039; Ce mot de passe a &eacute;t&eacute; g&eacute;n&eacute;r&eacute; "
+                + "automatiquement. Veuillez le changer d&egrave;s votre premi&egrave;re connexion.</p>"
+                + "<hr style='border: none; border-top: 1px solid #eee; margin: 24px 0;'>"
+                + "<p style='color: #999; font-size: 12px;'>Cet email a &eacute;t&eacute; envoy&eacute; automatiquement. Merci de ne pas y r&eacute;pondre.</p>"
+                + "</div></body></html>";
+    }
+
+    private String translateRole(String role) {
+        return switch (role) {
+            case "ENSEIGNANT"          -> "Enseignant";
+            case "CHEF_DEPARTEMENT"    -> "Chef de D&eacute;partement";
+            case "RESPONSABLE_RESOURCE"-> "Responsable des Ressources";
+            case "TECHNICIEN"          -> "Technicien de Maintenance";
+            default                    -> role;
+        };
     }
 }

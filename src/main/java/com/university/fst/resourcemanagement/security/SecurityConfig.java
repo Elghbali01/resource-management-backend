@@ -52,9 +52,11 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Endpoints publics (pas de token requis)
+                        // Endpoints publics
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/fournisseurs/inscription").permitAll()
+                        // Endpoints admin — le @PreAuthorize du controller double la protection
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // Tout le reste nécessite une authentification
                         .anyRequest().authenticated()
                 )
