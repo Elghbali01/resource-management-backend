@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface FournisseurRepository extends JpaRepository<Fournisseur, Long> {
     Optional<Fournisseur> findByUser_Email(String email);
     boolean existsByUser_Email(String email);
+    void deleteByUserId(Long userId);
 }

@@ -28,6 +28,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     private final DepartementRepository        departementRepository;
     private final PasswordEncoder              passwordEncoder;
     private final EmailService                 emailService;
+    private final FournisseurRepository        fournisseurRepository ;
 
     public AdminUserServiceImpl(
             UserRepository userRepository,
@@ -37,7 +38,8 @@ public class AdminUserServiceImpl implements AdminUserService {
             ResponsableResourceRepository responsableResourceRepository,
             DepartementRepository departementRepository,
             PasswordEncoder passwordEncoder,
-            EmailService emailService) {
+            EmailService emailService ,
+            FournisseurRepository fournisseurRepository) {
         this.userRepository                = userRepository;
         this.enseignantRepository          = enseignantRepository;
         this.chefDepartementRepository     = chefDepartementRepository;
@@ -46,6 +48,7 @@ public class AdminUserServiceImpl implements AdminUserService {
         this.departementRepository         = departementRepository;
         this.passwordEncoder               = passwordEncoder;
         this.emailService                  = emailService;
+        this.fournisseurRepository =fournisseurRepository;
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -232,6 +235,7 @@ public class AdminUserServiceImpl implements AdminUserService {
             }
             case TECHNICIEN          -> technicienRepository.deleteByUserId(id);
             case RESPONSABLE_RESOURCE-> responsableResourceRepository.deleteByUserId(id);
+            case FOURNISSEUR -> fournisseurRepository.deleteByUserId(id);
             default -> { /* rien */ }
         }
         userRepository.delete(user);
