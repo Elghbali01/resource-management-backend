@@ -1,5 +1,6 @@
 package com.university.fst.resourcemanagement.controller;
 
+import com.university.fst.resourcemanagement.dto.AjouterBudgetRequest;
 import com.university.fst.resourcemanagement.dto.DepartementRequest;
 import com.university.fst.resourcemanagement.dto.DepartementResponse;
 import com.university.fst.resourcemanagement.service.DepartementService;
@@ -65,5 +66,12 @@ public class DepartementController {
     public ResponseEntity<Map<String, String>> supprimer(@PathVariable Long id) {
         departementService.supprimerDepartement(id);
         return ResponseEntity.ok(Map.of("message", "Département supprimé avec succès"));
+    }
+    // ── Budget ─────────────────────────────────────────────────────────────────
+    @PatchMapping("/{id}/budget")
+    public ResponseEntity<DepartementResponse> ajouterBudget(
+            @PathVariable Long id,
+            @Valid @RequestBody AjouterBudgetRequest request) {
+        return ResponseEntity.ok(departementService.ajouterBudget(id, request));
     }
 }

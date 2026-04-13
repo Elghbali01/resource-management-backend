@@ -1,5 +1,6 @@
 package com.university.fst.resourcemanagement.service;
 
+import com.university.fst.resourcemanagement.dto.AjouterBudgetRequest;
 import com.university.fst.resourcemanagement.dto.DepartementRequest;
 import com.university.fst.resourcemanagement.dto.DepartementResponse;
 
@@ -21,4 +22,6 @@ public interface DepartementService {
 
     /** Supprime un département (uniquement s'il n'a plus d'enseignants). */
     void supprimerDepartement(Long id);
+    /** Ajoute un montant au budget existant du département (cumul). */
+    DepartementResponse ajouterBudget(Long id, AjouterBudgetRequest request);
 }

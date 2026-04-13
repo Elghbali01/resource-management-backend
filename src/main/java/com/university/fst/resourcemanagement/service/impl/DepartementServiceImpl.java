@@ -1,5 +1,6 @@
 package com.university.fst.resourcemanagement.service.impl;
 
+import com.university.fst.resourcemanagement.dto.AjouterBudgetRequest;
 import com.university.fst.resourcemanagement.dto.DepartementRequest;
 import com.university.fst.resourcemanagement.dto.DepartementResponse;
 import com.university.fst.resourcemanagement.entity.Departement;
@@ -8,6 +9,7 @@ import com.university.fst.resourcemanagement.service.DepartementService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -100,6 +102,18 @@ public class DepartementServiceImpl implements DepartementService {
     }
 
     // ──────────────────────────────────────────────────────────────────────────
+    // AJOUTER BUDGET (cumul)
+    // ──────────────────────────────────────────────────────────────────────────
+    @Override
+    @Transactional
+    public DepartementResponse ajouterBudget(Long id, AjouterBudgetRequest request) {
+        Departement dept = findById(id);
+        BigDecimal ancienBudget = dept.getBudget() != null ? dept.getBudget() : BigDecimal.ZERO;
+        dept.setBudget(ancienBudget.add(request.getMontant()));
+        return toResponse(departementRepository.save(dept));
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
     // Helpers privés
     // ──────────────────────────────────────────────────────────────────────────
 
@@ -109,30 +123,16 @@ public class DepartementServiceImpl implements DepartementService {
                         "Département introuvable avec l'id : " + id));
     }
 
-    /** Mappe une entité Departement vers le DTO de réponse. */
     private DepartementResponse toResponse(Departement dept) {
-
-        String chefNom    = null;
-        String chefPrenom = null;
-        String chefEmail  = null;
-
+        String chefNom = null, chefPrenom = null, chefEmail = null;
         if (dept.getChef() != null && dept.getChef().getUser() != null) {
             chefNom    = dept.getChef().getUser().getNom();
             chefPrenom = dept.getChef().getUser().getPrenom();
             chefEmail  = dept.getChef().getUser().getEmail();
         }
-
-        int nbEnseignants = (dept.getEnseignants() == null)
-                ? 0
-                : dept.getEnseignants().size();
-
+        int nb = dept.getEnseignants() == null ? 0 : dept.getEnseignants().size();
         return new DepartementResponse(
-                dept.getId(),
-                dept.getNom(),
-                chefNom,
-                chefPrenom,
-                chefEmail,
-                nbEnseignants
-        );
+                dept.getId(), dept.getNom(), dept.getBudget(),
+                chefNom, chefPrenom, chefEmail, nb);
     }
 }

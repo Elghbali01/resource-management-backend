@@ -35,7 +35,7 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(admin);
             System.out.println(" Admin créé : issamelghbali@gmail.com / Admin1234");
         }
-
+/*
         //  Chef Département
         if (!userRepository.existsByEmail("issamChefDepa@gmail.com")) {
             User chef = new User();
@@ -98,5 +98,9 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(inactif);
             System.out.println(" User inactif créé : inactif@fst.ma / Inactif@1234");
         }
+
+ */
     }
+
+
 }
