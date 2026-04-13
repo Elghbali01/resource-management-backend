@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -73,5 +74,14 @@ public class DepartementController {
             @PathVariable Long id,
             @Valid @RequestBody AjouterBudgetRequest request) {
         return ResponseEntity.ok(departementService.ajouterBudget(id, request));
+    }
+    // Lister ── Budget ─────────────────────────────────────────────────────────────────
+    @GetMapping("/{id}/budget")
+    public ResponseEntity<Map<String, Object>> getBudget(@PathVariable Long id) {
+        BigDecimal budget = departementService.getBudgetDepartement(id);
+        return ResponseEntity.ok(Map.of(
+                "departementId", id,
+                "budget",        budget
+        ));
     }
 }

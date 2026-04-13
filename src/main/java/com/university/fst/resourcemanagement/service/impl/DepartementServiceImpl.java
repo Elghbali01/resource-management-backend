@@ -135,4 +135,9 @@ public class DepartementServiceImpl implements DepartementService {
                 dept.getId(), dept.getNom(), dept.getBudget(),
                 chefNom, chefPrenom, chefEmail, nb);
     }
+    @Override
+    @Transactional(readOnly = true)
+    public BigDecimal getBudgetDepartement(Long id) {
+        return findById(id).getBudget();
+    }
 }

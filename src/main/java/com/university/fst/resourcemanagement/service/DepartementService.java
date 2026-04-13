@@ -4,6 +4,7 @@ import com.university.fst.resourcemanagement.dto.AjouterBudgetRequest;
 import com.university.fst.resourcemanagement.dto.DepartementRequest;
 import com.university.fst.resourcemanagement.dto.DepartementResponse;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface DepartementService {
@@ -24,4 +25,6 @@ public interface DepartementService {
     void supprimerDepartement(Long id);
     /** Ajoute un montant au budget existant du département (cumul). */
     DepartementResponse ajouterBudget(Long id, AjouterBudgetRequest request);
+    // pour lister les budget
+    BigDecimal getBudgetDepartement(Long id);
 }
