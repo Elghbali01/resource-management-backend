@@ -1,7 +1,9 @@
 package com.university.fst.resourcemanagement.service.impl;
 
+import com.university.fst.resourcemanagement.dto.ChefBudgetResponse;
 import com.university.fst.resourcemanagement.dto.EnseignantResponse;
 import com.university.fst.resourcemanagement.entity.ChefDepartement;
+import com.university.fst.resourcemanagement.entity.Departement;
 import com.university.fst.resourcemanagement.entity.Enseignant;
 import com.university.fst.resourcemanagement.repository.ChefDepartementRepository;
 import com.university.fst.resourcemanagement.repository.EnseignantRepository;
@@ -9,6 +11,7 @@ import com.university.fst.resourcemanagement.service.ChefDepartementService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -55,5 +58,17 @@ public class ChefDepartementServiceImpl implements ChefDepartementService {
                         e.getDepartement().getNom()
                 ))
                 .collect(Collectors.toList());
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public ChefBudgetResponse getBudgetDuDepartement(Long userId) {
+        ChefDepartement chef = chefDepartementRepository
+                .findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Chef introuvable"));
+
+        Departement dept = chef.getDepartement();
+        BigDecimal budget = dept.getBudget() != null ? dept.getBudget() : BigDecimal.ZERO;
+
+        return new ChefBudgetResponse(dept.getId(), dept.getNom(), budget);
     }
 }

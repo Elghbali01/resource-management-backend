@@ -1,5 +1,6 @@
 package com.university.fst.resourcemanagement.service;
 
+import com.university.fst.resourcemanagement.dto.ChefBudgetResponse;
 import com.university.fst.resourcemanagement.dto.EnseignantResponse;
 
 import java.util.List;
@@ -13,4 +14,5 @@ public interface ChefDepartementService {
      * @param chefUserId  l'id User du chef connecté (extrait du JWT)
      */
     List<EnseignantResponse> listerEnseignantsDuDepartement(Long chefUserId);
+    ChefBudgetResponse getBudgetDuDepartement(Long userId);
 }
