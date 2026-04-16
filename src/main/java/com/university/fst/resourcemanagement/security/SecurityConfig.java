@@ -56,6 +56,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/fournisseurs/inscription").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/chef/**").hasRole("CHEF_DEPARTEMENT")
+                        .requestMatchers("/api/enseignant/**").hasRole("ENSEIGNANT")
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
