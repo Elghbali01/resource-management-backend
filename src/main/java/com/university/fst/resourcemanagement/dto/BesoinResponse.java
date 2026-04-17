@@ -26,6 +26,14 @@ public class BesoinResponse {
     private String enseignantPrenom;
     private String departementNom;
 
+    // Champs détaillés pour le frontend
+    private String cpu;
+    private String ram;
+    private String disqueDur;
+    private String ecran;
+    private String vitesseImpression;
+    private String resolution;
+
     public BesoinResponse(
             Long id,
             Long demandeId,
@@ -43,7 +51,13 @@ public class BesoinResponse {
             Long enseignantUserId,
             String enseignantNom,
             String enseignantPrenom,
-            String departementNom
+            String departementNom,
+            String cpu,
+            String ram,
+            String disqueDur,
+            String ecran,
+            String vitesseImpression,
+            String resolution
     ) {
         this.id = id;
         this.demandeId = demandeId;
@@ -62,73 +76,36 @@ public class BesoinResponse {
         this.enseignantNom = enseignantNom;
         this.enseignantPrenom = enseignantPrenom;
         this.departementNom = departementNom;
+        this.cpu = cpu;
+        this.ram = ram;
+        this.disqueDur = disqueDur;
+        this.ecran = ecran;
+        this.vitesseImpression = vitesseImpression;
+        this.resolution = resolution;
     }
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public Long getDemandeId() { return demandeId; }
+    public String getDemandeTitre() { return demandeTitre; }
+    public LocalDate getDemandeDateLimite() { return demandeDateLimite; }
+    public TypeMateriel getTypeMateriel() { return typeMateriel; }
+    public NatureBesoin getNatureBesoin() { return natureBesoin; }
+    public Integer getQuantite() { return quantite; }
+    public String getMarqueSouhaitee() { return marqueSouhaitee; }
+    public String getCaracteristiques() { return caracteristiques; }
+    public String getJustification() { return justification; }
+    public LocalDateTime getDateSoumission() { return dateSoumission; }
+    public LocalDateTime getDerniereModification() { return derniereModification; }
+    public Long getEnseignantId() { return enseignantId; }
+    public Long getEnseignantUserId() { return enseignantUserId; }
+    public String getEnseignantNom() { return enseignantNom; }
+    public String getEnseignantPrenom() { return enseignantPrenom; }
+    public String getDepartementNom() { return departementNom; }
 
-    public Long getDemandeId() {
-        return demandeId;
-    }
-
-    public String getDemandeTitre() {
-        return demandeTitre;
-    }
-
-    public LocalDate getDemandeDateLimite() {
-        return demandeDateLimite;
-    }
-
-    public TypeMateriel getTypeMateriel() {
-        return typeMateriel;
-    }
-
-    public NatureBesoin getNatureBesoin() {
-        return natureBesoin;
-    }
-
-    public Integer getQuantite() {
-        return quantite;
-    }
-
-    public String getMarqueSouhaitee() {
-        return marqueSouhaitee;
-    }
-
-    public String getCaracteristiques() {
-        return caracteristiques;
-    }
-
-    public String getJustification() {
-        return justification;
-    }
-
-    public LocalDateTime getDateSoumission() {
-        return dateSoumission;
-    }
-
-    public LocalDateTime getDerniereModification() {
-        return derniereModification;
-    }
-
-    public Long getEnseignantId() {
-        return enseignantId;
-    }
-
-    public Long getEnseignantUserId() {
-        return enseignantUserId;
-    }
-
-    public String getEnseignantNom() {
-        return enseignantNom;
-    }
-
-    public String getEnseignantPrenom() {
-        return enseignantPrenom;
-    }
-
-    public String getDepartementNom() {
-        return departementNom;
-    }
+    public String getCpu() { return cpu; }
+    public String getRam() { return ram; }
+    public String getDisqueDur() { return disqueDur; }
+    public String getEcran() { return ecran; }
+    public String getVitesseImpression() { return vitesseImpression; }
+    public String getResolution() { return resolution; }
 }

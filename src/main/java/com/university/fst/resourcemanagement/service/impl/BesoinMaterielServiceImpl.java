@@ -8,6 +8,7 @@ import com.university.fst.resourcemanagement.entity.DemandeCollecte;
 import com.university.fst.resourcemanagement.entity.Enseignant;
 import com.university.fst.resourcemanagement.enums.NatureBesoin;
 import com.university.fst.resourcemanagement.enums.StatutDemande;
+import com.university.fst.resourcemanagement.enums.TypeMateriel;
 import com.university.fst.resourcemanagement.repository.BesoinMaterielRepository;
 import com.university.fst.resourcemanagement.repository.ChefDepartementRepository;
 import com.university.fst.resourcemanagement.repository.DemandeCollecteRepository;
@@ -50,6 +51,7 @@ public class BesoinMaterielServiceImpl implements BesoinMaterielService {
 
         verifierQueLaDemandeEstSoumettable(demande);
         verifierQueLEnseignantAppartientAuBonDepartement(enseignant, demande);
+        validerChampsMetier(request);
 
         BesoinMateriel besoin = new BesoinMateriel();
         besoin.setDemandeCollecte(demande);
@@ -57,9 +59,9 @@ public class BesoinMaterielServiceImpl implements BesoinMaterielService {
         besoin.setNatureBesoin(NatureBesoin.INDIVIDUEL);
         besoin.setTypeMateriel(request.getTypeMateriel());
         besoin.setQuantite(request.getQuantite());
-        besoin.setMarqueSouhaitee(request.getMarqueSouhaitee());
-        besoin.setCaracteristiques(request.getCaracteristiques());
-        besoin.setJustification(request.getJustification());
+        besoin.setMarqueSouhaitee(clean(request.getMarqueSouhaitee()));
+        besoin.setCaracteristiques(construireCaracteristiques(request));
+        besoin.setJustification(clean(request.getJustification()));
         besoin.setDateSoumission(LocalDateTime.now());
         besoin.setDerniereModification(LocalDateTime.now());
 
@@ -80,11 +82,13 @@ public class BesoinMaterielServiceImpl implements BesoinMaterielService {
             throw new RuntimeException("Impossible de changer la demande liée à ce besoin");
         }
 
+        validerChampsMetier(request);
+
         besoin.setTypeMateriel(request.getTypeMateriel());
         besoin.setQuantite(request.getQuantite());
-        besoin.setMarqueSouhaitee(request.getMarqueSouhaitee());
-        besoin.setCaracteristiques(request.getCaracteristiques());
-        besoin.setJustification(request.getJustification());
+        besoin.setMarqueSouhaitee(clean(request.getMarqueSouhaitee()));
+        besoin.setCaracteristiques(construireCaracteristiques(request));
+        besoin.setJustification(clean(request.getJustification()));
         besoin.setDerniereModification(LocalDateTime.now());
 
         return toResponse(besoinMaterielRepository.save(besoin));
@@ -166,7 +170,112 @@ public class BesoinMaterielServiceImpl implements BesoinMaterielService {
         }
     }
 
+    private void validerChampsMetier(BesoinRequest request) {
+        if (request.getTypeMateriel() == null) {
+            throw new RuntimeException("Le type de matériel est obligatoire");
+        }
+
+        if (clean(request.getMarqueSouhaitee()) == null) {
+            throw new RuntimeException("La marque est obligatoire");
+        }
+
+        if (clean(request.getJustification()) == null) {
+            throw new RuntimeException("La justification est obligatoire");
+        }
+
+        if (TypeMateriel.ORDINATEUR.equals(request.getTypeMateriel())) {
+            if (clean(request.getCpu()) == null) {
+                throw new RuntimeException("Le CPU est obligatoire pour un ordinateur");
+            }
+            if (clean(request.getRam()) == null) {
+                throw new RuntimeException("La RAM est obligatoire pour un ordinateur");
+            }
+            if (clean(request.getDisqueDur()) == null) {
+                throw new RuntimeException("Le disque dur est obligatoire pour un ordinateur");
+            }
+            if (clean(request.getEcran()) == null) {
+                throw new RuntimeException("L'écran est obligatoire pour un ordinateur");
+            }
+        }
+
+        if (TypeMateriel.IMPRIMANTE.equals(request.getTypeMateriel())) {
+            if (clean(request.getVitesseImpression()) == null) {
+                throw new RuntimeException("La vitesse d'impression est obligatoire pour une imprimante");
+            }
+            if (clean(request.getResolution()) == null) {
+                throw new RuntimeException("La résolution est obligatoire pour une imprimante");
+            }
+        }
+    }
+
+    private String construireCaracteristiques(BesoinRequest request) {
+        if (TypeMateriel.ORDINATEUR.equals(request.getTypeMateriel())) {
+            return String.format(
+                    "CPU: %s | RAM: %s | Disque dur: %s | Ecran: %s",
+                    clean(request.getCpu()),
+                    clean(request.getRam()),
+                    clean(request.getDisqueDur()),
+                    clean(request.getEcran())
+            );
+        }
+
+        if (TypeMateriel.IMPRIMANTE.equals(request.getTypeMateriel())) {
+            return String.format(
+                    "Vitesse d'impression: %s | Résolution: %s",
+                    clean(request.getVitesseImpression()),
+                    clean(request.getResolution())
+            );
+        }
+
+        return null;
+    }
+
+    private ParsedCaracteristiques parseCaracteristiques(TypeMateriel typeMateriel, String caracteristiques) {
+        ParsedCaracteristiques parsed = new ParsedCaracteristiques();
+
+        if (caracteristiques == null || caracteristiques.isBlank()) {
+            return parsed;
+        }
+
+        String[] parts = caracteristiques.split("\\|");
+        for (String rawPart : parts) {
+            String part = rawPart.trim();
+            int idx = part.indexOf(':');
+            if (idx <= 0) {
+                continue;
+            }
+
+            String key = part.substring(0, idx).trim().toLowerCase();
+            String value = part.substring(idx + 1).trim();
+
+            if (TypeMateriel.ORDINATEUR.equals(typeMateriel)) {
+                if (key.equals("cpu")) parsed.cpu = value;
+                else if (key.equals("ram")) parsed.ram = value;
+                else if (key.equals("disque dur")) parsed.disqueDur = value;
+                else if (key.equals("ecran") || key.equals("écran")) parsed.ecran = value;
+            }
+
+            if (TypeMateriel.IMPRIMANTE.equals(typeMateriel)) {
+                if (key.equals("vitesse d'impression")) parsed.vitesseImpression = value;
+                else if (key.equals("résolution") || key.equals("resolution")) parsed.resolution = value;
+            }
+        }
+
+        return parsed;
+    }
+
+    private String clean(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
     private BesoinResponse toResponse(BesoinMateriel besoin) {
+        ParsedCaracteristiques parsed = parseCaracteristiques(
+                besoin.getTypeMateriel(),
+                besoin.getCaracteristiques()
+        );
+
         return new BesoinResponse(
                 besoin.getId(),
                 besoin.getDemandeCollecte().getId(),
@@ -184,7 +293,22 @@ public class BesoinMaterielServiceImpl implements BesoinMaterielService {
                 besoin.getEnseignant() != null ? besoin.getEnseignant().getUser().getId() : null,
                 besoin.getEnseignant() != null ? besoin.getEnseignant().getUser().getNom() : null,
                 besoin.getEnseignant() != null ? besoin.getEnseignant().getUser().getPrenom() : null,
-                besoin.getDemandeCollecte().getDepartement().getNom()
+                besoin.getDemandeCollecte().getDepartement().getNom(),
+                parsed.cpu,
+                parsed.ram,
+                parsed.disqueDur,
+                parsed.ecran,
+                parsed.vitesseImpression,
+                parsed.resolution
         );
+    }
+
+    private static class ParsedCaracteristiques {
+        private String cpu;
+        private String ram;
+        private String disqueDur;
+        private String ecran;
+        private String vitesseImpression;
+        private String resolution;
     }
 }
