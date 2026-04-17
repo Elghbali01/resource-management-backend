@@ -35,7 +35,7 @@ public class JwtUtils {
     public String generateTokenWithRole(UserDetailsImpl userDetails, String roleChoisi) {
         return buildToken(
                 userDetails.getUsername(),
-                roleChoisi,               // on écrase le rôle dans le claim JWT
+                roleChoisi,
                 userDetails.getNom(),
                 userDetails.getPrenom()
         );
@@ -54,21 +54,36 @@ public class JwtUtils {
                 .compact();
     }
 
-    public String getEmailFromToken(String token) {
+    private Claims getClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+                .getBody();
+    }
+
+    public String getEmailFromToken(String token) {
+        return getClaims(token).getSubject();
+    }
+
+    public String getRoleFromToken(String token) {
+        Object role = getClaims(token).get("role");
+        return role != null ? role.toString() : null;
+    }
+
+    public String getNomFromToken(String token) {
+        Object nom = getClaims(token).get("nom");
+        return nom != null ? nom.toString() : null;
+    }
+
+    public String getPrenomFromToken(String token) {
+        Object prenom = getClaims(token).get("prenom");
+        return prenom != null ? prenom.toString() : null;
     }
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token);
+            getClaims(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             return false;

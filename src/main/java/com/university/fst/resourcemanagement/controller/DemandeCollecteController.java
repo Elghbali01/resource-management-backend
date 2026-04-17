@@ -14,8 +14,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * POST /api/chef/demandes          → créer une demande de collecte
- * GET  /api/chef/demandes          → liste les demandes du département du chef
+ * POST   /api/chef/demandes                  → créer une demande en BROUILLON
+ * PATCH  /api/chef/demandes/{id}/ouvrir      → ouvrir la collecte
+ * PATCH  /api/chef/demandes/{id}/fermer      → fermer la collecte
+ * GET    /api/chef/demandes                  → liste les demandes du département du chef
  */
 @RestController
 @RequestMapping("/api/chef/demandes")
@@ -35,7 +37,28 @@ public class DemandeCollecteController {
 
         DemandeCollecteResponse response =
                 demandeCollecteService.creerDemande(userDetails.getId(), request);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PatchMapping("/{id}/ouvrir")
+    public ResponseEntity<DemandeCollecteResponse> ouvrir(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        return ResponseEntity.ok(
+                demandeCollecteService.ouvrirDemande(userDetails.getId(), id)
+        );
+    }
+
+    @PatchMapping("/{id}/fermer")
+    public ResponseEntity<DemandeCollecteResponse> fermer(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        return ResponseEntity.ok(
+                demandeCollecteService.fermerDemande(userDetails.getId(), id)
+        );
     }
 
     @GetMapping
@@ -43,6 +66,7 @@ public class DemandeCollecteController {
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
         return ResponseEntity.ok(
-                demandeCollecteService.listerDemandesChef(userDetails.getId()));
+                demandeCollecteService.listerDemandesChef(userDetails.getId())
+        );
     }
 }

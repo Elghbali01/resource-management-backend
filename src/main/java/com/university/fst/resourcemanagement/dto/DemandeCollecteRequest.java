@@ -1,9 +1,9 @@
 package com.university.fst.resourcemanagement.dto;
 
-import com.university.fst.resourcemanagement.enums.StatutDemande;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
 import java.time.LocalDate;
 
 public class DemandeCollecteRequest {
@@ -17,20 +17,29 @@ public class DemandeCollecteRequest {
     @Future(message = "La date limite doit être dans le futur")
     private LocalDate dateLimite;
 
-    @NotNull(message = "Le statut est obligatoire")
-    private StatutDemande statut;
-
     public DemandeCollecteRequest() {}
 
-    public String getTitre()               { return titre; }
-    public void setTitre(String titre)     { this.titre = titre; }
+    public String getTitre() {
+        return titre;
+    }
 
-    public String getDescription()         { return description; }
-    public void setDescription(String d)   { this.description = d; }
+    public void setTitre(String titre) {
+        this.titre = titre;
+    }
 
-    public LocalDate getDateLimite()       { return dateLimite; }
-    public void setDateLimite(LocalDate d) { this.dateLimite = d; }
+    public String getDescription() {
+        return description;
+    }
 
-    public StatutDemande getStatut()       { return statut; }
-    public void setStatut(StatutDemande s) { this.statut = s; }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public LocalDate getDateLimite() {
+        return dateLimite;
+    }
+
+    public void setDateLimite(LocalDate dateLimite) {
+        this.dateLimite = dateLimite;
+    }
 }
