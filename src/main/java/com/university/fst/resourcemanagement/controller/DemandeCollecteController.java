@@ -2,6 +2,8 @@ package com.university.fst.resourcemanagement.controller;
 
 import com.university.fst.resourcemanagement.dto.DemandeCollecteRequest;
 import com.university.fst.resourcemanagement.dto.DemandeCollecteResponse;
+import com.university.fst.resourcemanagement.dto.DemandeConcertationRequest;
+import com.university.fst.resourcemanagement.dto.TransmissionDemandeResponse;
 import com.university.fst.resourcemanagement.security.UserDetailsImpl;
 import com.university.fst.resourcemanagement.service.DemandeCollecteService;
 import jakarta.validation.Valid;
@@ -13,12 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * POST   /api/chef/demandes                  → créer une demande en BROUILLON
- * PATCH  /api/chef/demandes/{id}/ouvrir      → ouvrir la collecte
- * PATCH  /api/chef/demandes/{id}/fermer      → fermer la collecte
- * GET    /api/chef/demandes                  → liste les demandes du département du chef
- */
 @RestController
 @RequestMapping("/api/chef/demandes")
 @PreAuthorize("hasRole('CHEF_DEPARTEMENT')")
@@ -58,6 +54,27 @@ public class DemandeCollecteController {
 
         return ResponseEntity.ok(
                 demandeCollecteService.fermerDemande(userDetails.getId(), id)
+        );
+    }
+
+    @PatchMapping("/{id}/valider")
+    public ResponseEntity<DemandeCollecteResponse> valider(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @Valid @RequestBody DemandeConcertationRequest request) {
+
+        return ResponseEntity.ok(
+                demandeCollecteService.validerDemande(userDetails.getId(), id, request)
+        );
+    }
+
+    @PostMapping("/{id}/transmettre")
+    public ResponseEntity<TransmissionDemandeResponse> transmettre(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        return ResponseEntity.ok(
+                demandeCollecteService.transmettreAuResponsable(userDetails.getId(), id)
         );
     }
 

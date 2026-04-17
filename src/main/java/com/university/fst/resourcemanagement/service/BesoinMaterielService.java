@@ -7,18 +7,24 @@ import java.util.List;
 
 public interface BesoinMaterielService {
 
-    /** Soumission d'un besoin par un enseignant connecté. */
+    // Enseignant
     BesoinResponse soumettreBesoin(Long enseignantUserId, BesoinRequest request);
-
-    /** Modifier un besoin déjà soumis par l'enseignant connecté. */
     BesoinResponse modifierBesoin(Long enseignantUserId, Long besoinId, BesoinRequest request);
-
-    /** Supprimer un besoin déjà soumis par l'enseignant connecté. */
     void supprimerBesoin(Long enseignantUserId, Long besoinId);
-
-    /** Lister les besoins de l'enseignant connecté pour une demande donnée. */
     List<BesoinResponse> listerMesBesoins(Long enseignantUserId, Long demandeId);
 
-    /** Lister tous les besoins d'une demande pour le chef du département concerné. */
+    // Chef
     List<BesoinResponse> listerBesoinsPourChef(Long chefUserId, Long demandeId);
+
+    /** Ajouter un besoin collectif du département pendant la concertation. */
+    BesoinResponse ajouterBesoinCollectif(Long chefUserId, BesoinRequest request);
+
+    /** Modifier n'importe quel besoin de la demande pendant la concertation. */
+    BesoinResponse modifierBesoinParChef(Long chefUserId, Long besoinId, BesoinRequest request);
+
+    /** Supprimer n'importe quel besoin de la demande pendant la concertation. */
+    void supprimerBesoinParChef(Long chefUserId, Long besoinId);
+
+    /** Lister uniquement les besoins collectifs du département. */
+    List<BesoinResponse> listerBesoinsCollectifs(Long chefUserId, Long demandeId);
 }

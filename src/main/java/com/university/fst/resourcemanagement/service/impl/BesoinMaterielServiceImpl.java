@@ -42,14 +42,16 @@ public class BesoinMaterielServiceImpl implements BesoinMaterielService {
         this.chefDepartementRepository = chefDepartementRepository;
     }
 
+    // ──────────────────────────────────────────────────────────────────────────
+    // ENSEIGNANT
+    // ──────────────────────────────────────────────────────────────────────────
     @Override
     @Transactional
     public BesoinResponse soumettreBesoin(Long enseignantUserId, BesoinRequest request) {
-
         Enseignant enseignant = getEnseignantByUserId(enseignantUserId);
         DemandeCollecte demande = getDemandeById(request.getDemandeId());
 
-        verifierQueLaDemandeEstSoumettable(demande);
+        verifierQueLaDemandeEstSoumettablePourEnseignant(demande);
         verifierQueLEnseignantAppartientAuBonDepartement(enseignant, demande);
         validerChampsMetier(request);
 
@@ -71,12 +73,11 @@ public class BesoinMaterielServiceImpl implements BesoinMaterielService {
     @Override
     @Transactional
     public BesoinResponse modifierBesoin(Long enseignantUserId, Long besoinId, BesoinRequest request) {
-
         BesoinMateriel besoin = besoinMaterielRepository.findByIdAndEnseignantUserId(besoinId, enseignantUserId)
                 .orElseThrow(() -> new RuntimeException("Besoin introuvable pour cet enseignant"));
 
         DemandeCollecte demande = besoin.getDemandeCollecte();
-        verifierQueLaDemandeEstSoumettable(demande);
+        verifierQueLaDemandeEstSoumettablePourEnseignant(demande);
 
         if (!demande.getId().equals(request.getDemandeId())) {
             throw new RuntimeException("Impossible de changer la demande liée à ce besoin");
@@ -97,11 +98,10 @@ public class BesoinMaterielServiceImpl implements BesoinMaterielService {
     @Override
     @Transactional
     public void supprimerBesoin(Long enseignantUserId, Long besoinId) {
-
         BesoinMateriel besoin = besoinMaterielRepository.findByIdAndEnseignantUserId(besoinId, enseignantUserId)
                 .orElseThrow(() -> new RuntimeException("Besoin introuvable pour cet enseignant"));
 
-        verifierQueLaDemandeEstSoumettable(besoin.getDemandeCollecte());
+        verifierQueLaDemandeEstSoumettablePourEnseignant(besoin.getDemandeCollecte());
 
         besoinMaterielRepository.delete(besoin);
     }
@@ -109,7 +109,6 @@ public class BesoinMaterielServiceImpl implements BesoinMaterielService {
     @Override
     @Transactional(readOnly = true)
     public List<BesoinResponse> listerMesBesoins(Long enseignantUserId, Long demandeId) {
-
         Enseignant enseignant = getEnseignantByUserId(enseignantUserId);
         DemandeCollecte demande = getDemandeById(demandeId);
 
@@ -122,16 +121,14 @@ public class BesoinMaterielServiceImpl implements BesoinMaterielService {
                 .collect(Collectors.toList());
     }
 
+    // ──────────────────────────────────────────────────────────────────────────
+    // CHEF
+    // ──────────────────────────────────────────────────────────────────────────
     @Override
     @Transactional(readOnly = true)
     public List<BesoinResponse> listerBesoinsPourChef(Long chefUserId, Long demandeId) {
-
-        ChefDepartement chef = chefDepartementRepository.findByUserId(chefUserId)
-                .orElseThrow(() -> new RuntimeException("Chef de département introuvable"));
-
-        DemandeCollecte demande = demandeCollecteRepository
-                .findByIdAndDepartementId(demandeId, chef.getDepartement().getId())
-                .orElseThrow(() -> new RuntimeException("Demande introuvable pour le département du chef"));
+        ChefDepartement chef = getChefByUserId(chefUserId);
+        DemandeCollecte demande = getDemandeChef(chef, demandeId);
 
         return besoinMaterielRepository
                 .findByDemandeCollecteIdOrderByDateSoumissionDesc(demande.getId())
@@ -140,14 +137,113 @@ public class BesoinMaterielServiceImpl implements BesoinMaterielService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional
+    public BesoinResponse ajouterBesoinCollectif(Long chefUserId, BesoinRequest request) {
+        ChefDepartement chef = getChefByUserId(chefUserId);
+        DemandeCollecte demande = getDemandeChef(chef, request.getDemandeId());
+
+        verifierQueLaDemandeEstEnConcertation(demande);
+        validerChampsMetier(request);
+
+        BesoinMateriel besoin = new BesoinMateriel();
+        besoin.setDemandeCollecte(demande);
+        besoin.setEnseignant(null);
+        besoin.setNatureBesoin(NatureBesoin.COLLECTIF);
+        besoin.setTypeMateriel(request.getTypeMateriel());
+        besoin.setQuantite(request.getQuantite());
+        besoin.setMarqueSouhaitee(clean(request.getMarqueSouhaitee()));
+        besoin.setCaracteristiques(construireCaracteristiques(request));
+        besoin.setJustification(clean(request.getJustification()));
+        besoin.setDateSoumission(LocalDateTime.now());
+        besoin.setDerniereModification(LocalDateTime.now());
+
+        return toResponse(besoinMaterielRepository.save(besoin));
+    }
+
+    @Override
+    @Transactional
+    public BesoinResponse modifierBesoinParChef(Long chefUserId, Long besoinId, BesoinRequest request) {
+        ChefDepartement chef = getChefByUserId(chefUserId);
+
+        BesoinMateriel besoin = besoinMaterielRepository.findById(besoinId)
+                .orElseThrow(() -> new RuntimeException("Besoin introuvable"));
+
+        if (!besoin.getDemandeCollecte().getDepartement().getId().equals(chef.getDepartement().getId())) {
+            throw new RuntimeException("Ce besoin n'appartient pas au département du chef");
+        }
+
+        if (!besoin.getDemandeCollecte().getId().equals(request.getDemandeId())) {
+            throw new RuntimeException("Impossible de changer la demande liée au besoin");
+        }
+
+        verifierQueLaDemandeEstEnConcertation(besoin.getDemandeCollecte());
+        validerChampsMetier(request);
+
+        besoin.setTypeMateriel(request.getTypeMateriel());
+        besoin.setQuantite(request.getQuantite());
+        besoin.setMarqueSouhaitee(clean(request.getMarqueSouhaitee()));
+        besoin.setCaracteristiques(construireCaracteristiques(request));
+        besoin.setJustification(clean(request.getJustification()));
+        besoin.setDerniereModification(LocalDateTime.now());
+
+        return toResponse(besoinMaterielRepository.save(besoin));
+    }
+
+    @Override
+    @Transactional
+    public void supprimerBesoinParChef(Long chefUserId, Long besoinId) {
+        ChefDepartement chef = getChefByUserId(chefUserId);
+
+        BesoinMateriel besoin = besoinMaterielRepository.findById(besoinId)
+                .orElseThrow(() -> new RuntimeException("Besoin introuvable"));
+
+        if (!besoin.getDemandeCollecte().getDepartement().getId().equals(chef.getDepartement().getId())) {
+            throw new RuntimeException("Ce besoin n'appartient pas au département du chef");
+        }
+
+        verifierQueLaDemandeEstEnConcertation(besoin.getDemandeCollecte());
+
+        besoinMaterielRepository.delete(besoin);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BesoinResponse> listerBesoinsCollectifs(Long chefUserId, Long demandeId) {
+        ChefDepartement chef = getChefByUserId(chefUserId);
+        DemandeCollecte demande = getDemandeChef(chef, demandeId);
+
+        return besoinMaterielRepository
+                .findByDemandeCollecteIdAndNatureBesoinOrderByDateSoumissionDesc(
+                        demande.getId(),
+                        NatureBesoin.COLLECTIF
+                )
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // HELPERS
+    // ──────────────────────────────────────────────────────────────────────────
     private Enseignant getEnseignantByUserId(Long userId) {
         return enseignantRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Enseignant introuvable"));
     }
 
+    private ChefDepartement getChefByUserId(Long userId) {
+        return chefDepartementRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Chef de département introuvable"));
+    }
+
     private DemandeCollecte getDemandeById(Long demandeId) {
         return demandeCollecteRepository.findById(demandeId)
                 .orElseThrow(() -> new RuntimeException("Demande de collecte introuvable : " + demandeId));
+    }
+
+    private DemandeCollecte getDemandeChef(ChefDepartement chef, Long demandeId) {
+        return demandeCollecteRepository.findByIdAndDepartementId(demandeId, chef.getDepartement().getId())
+                .orElseThrow(() -> new RuntimeException("Demande introuvable pour le département du chef"));
     }
 
     private void verifierQueLEnseignantAppartientAuBonDepartement(
@@ -159,7 +255,7 @@ public class BesoinMaterielServiceImpl implements BesoinMaterielService {
         }
     }
 
-    private void verifierQueLaDemandeEstSoumettable(DemandeCollecte demande) {
+    private void verifierQueLaDemandeEstSoumettablePourEnseignant(DemandeCollecte demande) {
         if (!StatutDemande.OUVERTE.equals(demande.getStatut())) {
             throw new RuntimeException("Les besoins ne peuvent être soumis que pour une demande ouverte");
         }
@@ -170,32 +266,28 @@ public class BesoinMaterielServiceImpl implements BesoinMaterielService {
         }
     }
 
+    private void verifierQueLaDemandeEstEnConcertation(DemandeCollecte demande) {
+        if (!StatutDemande.CONCERTATION.equals(demande.getStatut())) {
+            throw new RuntimeException("Les modifications du chef ne sont autorisées qu'en phase de concertation");
+        }
+    }
+
     private void validerChampsMetier(BesoinRequest request) {
         if (request.getTypeMateriel() == null) {
             throw new RuntimeException("Le type de matériel est obligatoire");
         }
-
         if (clean(request.getMarqueSouhaitee()) == null) {
             throw new RuntimeException("La marque est obligatoire");
         }
-
         if (clean(request.getJustification()) == null) {
             throw new RuntimeException("La justification est obligatoire");
         }
 
         if (TypeMateriel.ORDINATEUR.equals(request.getTypeMateriel())) {
-            if (clean(request.getCpu()) == null) {
-                throw new RuntimeException("Le CPU est obligatoire pour un ordinateur");
-            }
-            if (clean(request.getRam()) == null) {
-                throw new RuntimeException("La RAM est obligatoire pour un ordinateur");
-            }
-            if (clean(request.getDisqueDur()) == null) {
-                throw new RuntimeException("Le disque dur est obligatoire pour un ordinateur");
-            }
-            if (clean(request.getEcran()) == null) {
-                throw new RuntimeException("L'écran est obligatoire pour un ordinateur");
-            }
+            if (clean(request.getCpu()) == null) throw new RuntimeException("Le CPU est obligatoire pour un ordinateur");
+            if (clean(request.getRam()) == null) throw new RuntimeException("La RAM est obligatoire pour un ordinateur");
+            if (clean(request.getDisqueDur()) == null) throw new RuntimeException("Le disque dur est obligatoire pour un ordinateur");
+            if (clean(request.getEcran()) == null) throw new RuntimeException("L'écran est obligatoire pour un ordinateur");
         }
 
         if (TypeMateriel.IMPRIMANTE.equals(request.getTypeMateriel())) {
@@ -241,9 +333,7 @@ public class BesoinMaterielServiceImpl implements BesoinMaterielService {
         for (String rawPart : parts) {
             String part = rawPart.trim();
             int idx = part.indexOf(':');
-            if (idx <= 0) {
-                continue;
-            }
+            if (idx <= 0) continue;
 
             String key = part.substring(0, idx).trim().toLowerCase();
             String value = part.substring(idx + 1).trim();

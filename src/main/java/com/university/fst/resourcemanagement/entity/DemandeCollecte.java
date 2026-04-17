@@ -2,6 +2,7 @@ package com.university.fst.resourcemanagement.entity;
 
 import com.university.fst.resourcemanagement.enums.StatutDemande;
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -33,34 +34,67 @@ public class DemandeCollecte {
     @JoinColumn(name = "departement_id", nullable = false)
     private Departement departement;
 
-    // Le chef qui a créé la demande
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cree_par_id", nullable = false)
     private User creePar;
 
+    private LocalDateTime dateDebutConcertation;
+    private LocalDateTime dateFinConcertation;
+
+    @Column(columnDefinition = "TEXT")
+    private String compteRenduConcertation;
+
+    private LocalDateTime dateValidationChef;
+    private LocalDateTime dateTransmissionResponsable;
+
     public DemandeCollecte() {}
 
-    public Long getId()                        { return id; }
-    public void setId(Long id)                 { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public String getTitre()                   { return titre; }
-    public void setTitre(String titre)         { this.titre = titre; }
+    public String getTitre() { return titre; }
+    public void setTitre(String titre) { this.titre = titre; }
 
-    public String getDescription()             { return description; }
-    public void setDescription(String d)       { this.description = d; }
+    public String getDescription() { return description; }
+    public void setDescription(String d) { this.description = d; }
 
-    public LocalDateTime getDateCreation()     { return dateCreation; }
+    public LocalDateTime getDateCreation() { return dateCreation; }
     public void setDateCreation(LocalDateTime d){ this.dateCreation = d; }
 
-    public LocalDate getDateLimite()           { return dateLimite; }
-    public void setDateLimite(LocalDate d)     { this.dateLimite = d; }
+    public LocalDate getDateLimite() { return dateLimite; }
+    public void setDateLimite(LocalDate d) { this.dateLimite = d; }
 
-    public StatutDemande getStatut()           { return statut; }
-    public void setStatut(StatutDemande s)     { this.statut = s; }
+    public StatutDemande getStatut() { return statut; }
+    public void setStatut(StatutDemande s) { this.statut = s; }
 
-    public Departement getDepartement()        { return departement; }
-    public void setDepartement(Departement d)  { this.departement = d; }
+    public Departement getDepartement() { return departement; }
+    public void setDepartement(Departement d) { this.departement = d; }
 
-    public User getCreePar()                   { return creePar; }
-    public void setCreePar(User u)             { this.creePar = u; }
+    public User getCreePar() { return creePar; }
+    public void setCreePar(User u) { this.creePar = u; }
+
+    public LocalDateTime getDateDebutConcertation() { return dateDebutConcertation; }
+    public void setDateDebutConcertation(LocalDateTime dateDebutConcertation) {
+        this.dateDebutConcertation = dateDebutConcertation;
+    }
+
+    public LocalDateTime getDateFinConcertation() { return dateFinConcertation; }
+    public void setDateFinConcertation(LocalDateTime dateFinConcertation) {
+        this.dateFinConcertation = dateFinConcertation;
+    }
+
+    public String getCompteRenduConcertation() { return compteRenduConcertation; }
+    public void setCompteRenduConcertation(String compteRenduConcertation) {
+        this.compteRenduConcertation = compteRenduConcertation;
+    }
+
+    public LocalDateTime getDateValidationChef() { return dateValidationChef; }
+    public void setDateValidationChef(LocalDateTime dateValidationChef) {
+        this.dateValidationChef = dateValidationChef;
+    }
+
+    public LocalDateTime getDateTransmissionResponsable() { return dateTransmissionResponsable; }
+    public void setDateTransmissionResponsable(LocalDateTime dateTransmissionResponsable) {
+        this.dateTransmissionResponsable = dateTransmissionResponsable;
+    }
 }
