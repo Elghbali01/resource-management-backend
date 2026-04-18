@@ -1,6 +1,7 @@
 package com.university.fst.resourcemanagement.controller;
 
 import com.university.fst.resourcemanagement.dto.PanneResponse;
+import com.university.fst.resourcemanagement.dto.RessourcePanneSelectResponse;
 import com.university.fst.resourcemanagement.dto.SignalerPanneRequest;
 import com.university.fst.resourcemanagement.security.UserDetailsImpl;
 import com.university.fst.resourcemanagement.service.MaintenanceService;
@@ -22,6 +23,15 @@ public class EnseignantPanneController {
 
     public EnseignantPanneController(MaintenanceService maintenanceService) {
         this.maintenanceService = maintenanceService;
+    }
+
+    @GetMapping("/ressources")
+    public ResponseEntity<List<RessourcePanneSelectResponse>> listerRessourcesPourPanne(
+            @AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {
+        return ResponseEntity.ok(
+                maintenanceService.listerRessourcesPannePourEnseignant(userDetails.getId())
+        );
     }
 
     @PostMapping

@@ -42,6 +42,22 @@ public class MaintenanceServiceImpl implements MaintenanceService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<RessourcePanneSelectResponse> listerRessourcesPannePourEnseignant(Long enseignantUserId) {
+        Enseignant enseignant = enseignantRepository.findByUserId(enseignantUserId)
+                .orElseThrow(() -> new RuntimeException("Enseignant introuvable"));
+
+        return affectationRessourceRepository
+                .findByEnseignantIdOrDepartementIdOrderByDateAffectationDesc(
+                        enseignant.getId(),
+                        enseignant.getDepartement().getId()
+                )
+                .stream()
+                .map(this::toRessourcePanneSelectResponse)
+                .toList();
+    }
+
+    @Override
     @Transactional
     public PanneResponse signalerPanne(Long enseignantUserId, SignalerPanneRequest request) {
         Enseignant enseignant = enseignantRepository.findByUserId(enseignantUserId)
@@ -53,8 +69,12 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         AffectationRessource affectation = affectationRessourceRepository.findByRessourceId(ressource.getId())
                 .orElseThrow(() -> new RuntimeException("Cette ressource n'est pas affectée"));
 
-        if (affectation.getEnseignant() == null || !affectation.getEnseignant().getId().equals(enseignant.getId())) {
-            throw new RuntimeException("Vous ne pouvez signaler une panne que sur une ressource qui vous est affectée");
+        boolean autorise =
+                (affectation.getEnseignant() != null && affectation.getEnseignant().getId().equals(enseignant.getId()))
+                        || affectation.getDepartement().getId().equals(enseignant.getDepartement().getId());
+
+        if (!autorise) {
+            throw new RuntimeException("Vous ne pouvez signaler une panne que sur une ressource qui vous est affectée ou affectée à votre département");
         }
 
         Panne panne = new Panne();
@@ -129,7 +149,6 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         panne.setStatut(StatutPanne.CONSTAT_ENVOYE);
 
         Panne saved = panneRepository.save(panne);
-
         notifierResponsables("Nouveau constat de panne sévère sur la ressource " + saved.getRessource().getNumeroInventaire());
 
         return toResponse(saved);
@@ -195,6 +214,19 @@ public class MaintenanceServiceImpl implements MaintenanceService {
             n.setTypeNotification(TypeNotification.INFORMATION);
             notificationRepository.save(n);
         }
+    }
+
+    private RessourcePanneSelectResponse toRessourcePanneSelectResponse(AffectationRessource a) {
+        RessourceMaterielle r = a.getRessource();
+        return new RessourcePanneSelectResponse(
+                r.getId(),
+                r.getNumeroInventaire(),
+                r.getCodeBarres(),
+                r.getTypeMateriel().name(),
+                r.getMarque(),
+                a.getDepartement().getNom(),
+                a.getTypeBeneficiaire().name()
+        );
     }
 
     private PanneResponse toResponse(Panne p) {

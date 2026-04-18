@@ -11,4 +11,8 @@ public interface AffectationRessourceRepository extends JpaRepository<Affectatio
     Optional<AffectationRessource> findByRessourceId(Long ressourceId);
 
     List<AffectationRessource> findAllByOrderByDateAffectationDesc();
+    List<AffectationRessource> findByEnseignantIdOrDepartementIdOrderByDateAffectationDesc(
+            Long enseignantId,
+            Long departementId
+    );
 }

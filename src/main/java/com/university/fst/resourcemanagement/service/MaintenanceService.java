@@ -7,6 +7,7 @@ import java.util.List;
 public interface MaintenanceService {
 
     // Enseignant
+    List<RessourcePanneSelectResponse> listerRessourcesPannePourEnseignant(Long enseignantUserId);
     PanneResponse signalerPanne(Long enseignantUserId, SignalerPanneRequest request);
     List<PanneResponse> listerMesPannes(Long enseignantUserId);
 
