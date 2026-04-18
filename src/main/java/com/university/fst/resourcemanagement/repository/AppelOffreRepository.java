@@ -11,9 +11,8 @@ public interface AppelOffreRepository extends JpaRepository<AppelOffre, Long> {
 
     List<AppelOffre> findAllByOrderByDateCreationDesc();
 
-    List<AppelOffre> findByStatutAndDateDebutLessThanEqualAndDateFinGreaterThanEqualOrderByDateCreationDesc(
+    List<AppelOffre> findByStatutAndDateFinGreaterThanEqualOrderByDateCreationDesc(
             StatutAppelOffre statut,
-            LocalDate dateDebut,
             LocalDate dateFin
     );
 }

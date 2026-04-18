@@ -129,9 +129,8 @@ public class AppelOffreServiceImpl implements AppelOffreService {
         LocalDate today = LocalDate.now();
 
         return appelOffreRepository
-                .findByStatutAndDateDebutLessThanEqualAndDateFinGreaterThanEqualOrderByDateCreationDesc(
+                .findByStatutAndDateFinGreaterThanEqualOrderByDateCreationDesc(
                         StatutAppelOffre.OUVERT,
-                        today,
                         today
                 )
                 .stream()
@@ -147,7 +146,6 @@ public class AppelOffreServiceImpl implements AppelOffreService {
 
         LocalDate today = LocalDate.now();
         if (!StatutAppelOffre.OUVERT.equals(appelOffre.getStatut())
-                || today.isBefore(appelOffre.getDateDebut())
                 || today.isAfter(appelOffre.getDateFin())) {
             throw new RuntimeException("Cet appel d'offre n'est pas actuellement consultable");
         }
