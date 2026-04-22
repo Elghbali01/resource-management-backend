@@ -23,4 +23,8 @@ public interface ResponsableRessourceService {
     AffectationRessourceResponse modifierAffectation(Long affectationId, AffectationRessourceRequest request);
 
     void supprimerAffectation(Long affectationId);
+
+    List<DepartementSimpleResponse> listerDepartements();
+
+    List<EnseignantSimpleResponse> listerEnseignantsDuDepartement(Long departementId);
 }

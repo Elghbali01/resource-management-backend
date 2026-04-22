@@ -26,10 +26,8 @@ public class ResponsableRessourceController {
     public ResponseEntity<ReceptionLivraisonResponse> receptionner(
             @Valid @RequestBody ReceptionLivraisonRequest request
     ) {
-        ReceptionLivraisonResponse response =
-                responsableRessourceService.receptionnerLivraison(request);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(responsableRessourceService.receptionnerLivraison(request));
     }
 
     @GetMapping
@@ -48,8 +46,7 @@ public class ResponsableRessourceController {
             @Valid @RequestBody RessourceRequest request
     ) {
         return ResponseEntity.ok(
-                responsableRessourceService.modifierRessource(ressourceId, request)
-        );
+                responsableRessourceService.modifierRessource(ressourceId, request));
     }
 
     @DeleteMapping("/{ressourceId}")
@@ -62,9 +59,8 @@ public class ResponsableRessourceController {
     public ResponseEntity<AffectationRessourceResponse> affecter(
             @Valid @RequestBody AffectationRessourceRequest request
     ) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                responsableRessourceService.affecterRessource(request)
-        );
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(responsableRessourceService.affecterRessource(request));
     }
 
     @GetMapping("/affectations")
@@ -78,8 +74,7 @@ public class ResponsableRessourceController {
             @Valid @RequestBody AffectationRessourceRequest request
     ) {
         return ResponseEntity.ok(
-                responsableRessourceService.modifierAffectation(affectationId, request)
-        );
+                responsableRessourceService.modifierAffectation(affectationId, request));
     }
 
     @DeleteMapping("/affectations/{affectationId}")
@@ -88,5 +83,20 @@ public class ResponsableRessourceController {
     ) {
         responsableRessourceService.supprimerAffectation(affectationId);
         return ResponseEntity.ok(Map.of("message", "Affectation supprimée avec succès"));
+    }
+
+    // ✅ NOUVEAU — lister les départements (pour le select frontend)
+    @GetMapping("/departements")
+    public ResponseEntity<List<DepartementSimpleResponse>> listerDepartements() {
+        return ResponseEntity.ok(responsableRessourceService.listerDepartements());
+    }
+
+    // ✅ NOUVEAU — lister les enseignants d'un département (pour le select frontend)
+    @GetMapping("/departements/{departementId}/enseignants")
+    public ResponseEntity<List<EnseignantSimpleResponse>> listerEnseignants(
+            @PathVariable Long departementId
+    ) {
+        return ResponseEntity.ok(
+                responsableRessourceService.listerEnseignantsDuDepartement(departementId));
     }
 }

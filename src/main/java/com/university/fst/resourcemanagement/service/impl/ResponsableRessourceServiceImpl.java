@@ -224,6 +224,35 @@ public class ResponsableRessourceServiceImpl implements ResponsableRessourceServ
         affectationRessourceRepository.delete(a);
     }
 
+    // ✅ NOUVEAU
+    @Override
+    @Transactional(readOnly = true)
+    public List<DepartementSimpleResponse> listerDepartements() {
+        return departementRepository.findAll()
+                .stream()
+                .map(d -> new DepartementSimpleResponse(d.getId(), d.getNom()))
+                .toList();
+    }
+
+    // ✅ NOUVEAU
+    @Override
+    @Transactional(readOnly = true)
+    public List<EnseignantSimpleResponse> listerEnseignantsDuDepartement(Long departementId) {
+        departementRepository.findById(departementId)
+                .orElseThrow(() -> new RuntimeException("Département introuvable"));
+
+        return enseignantRepository.findByDepartementId(departementId)
+                .stream()
+                .map(e -> new EnseignantSimpleResponse(
+                        e.getId(),
+                        e.getUser().getNom(),
+                        e.getUser().getPrenom()
+                ))
+                .toList();
+    }
+
+    // ── helpers ──────────────────────────────────────────────────────────────
+
     private RessourceMaterielle getRessourceEntity(Long id) {
         return ressourceMaterielleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Ressource introuvable"));

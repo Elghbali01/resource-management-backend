@@ -14,4 +14,6 @@ public interface EnseignantRepository extends JpaRepository<Enseignant, Long> {
     List<Enseignant> findByDepartementId(Long departementId);
 
     boolean existsByUserId(Long userId);
+
+
 }
