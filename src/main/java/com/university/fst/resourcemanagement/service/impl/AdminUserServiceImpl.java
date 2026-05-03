@@ -20,15 +20,15 @@ import java.util.stream.Collectors;
 @Service
 public class AdminUserServiceImpl implements AdminUserService {
 
-    private final UserRepository               userRepository;
-    private final EnseignantRepository         enseignantRepository;
-    private final ChefDepartementRepository    chefDepartementRepository;
-    private final TechnicienRepository         technicienRepository;
+    private final UserRepository                userRepository;
+    private final EnseignantRepository          enseignantRepository;
+    private final ChefDepartementRepository     chefDepartementRepository;
+    private final TechnicienRepository          technicienRepository;
     private final ResponsableResourceRepository responsableResourceRepository;
-    private final DepartementRepository        departementRepository;
-    private final PasswordEncoder              passwordEncoder;
-    private final EmailService                 emailService;
-    private final FournisseurRepository        fournisseurRepository ;
+    private final DepartementRepository         departementRepository;
+    private final PasswordEncoder               passwordEncoder;
+    private final EmailService                  emailService;
+    private final FournisseurRepository         fournisseurRepository;
 
     public AdminUserServiceImpl(
             UserRepository userRepository,
@@ -38,7 +38,7 @@ public class AdminUserServiceImpl implements AdminUserService {
             ResponsableResourceRepository responsableResourceRepository,
             DepartementRepository departementRepository,
             PasswordEncoder passwordEncoder,
-            EmailService emailService ,
+            EmailService emailService,
             FournisseurRepository fournisseurRepository) {
         this.userRepository                = userRepository;
         this.enseignantRepository          = enseignantRepository;
@@ -48,7 +48,7 @@ public class AdminUserServiceImpl implements AdminUserService {
         this.departementRepository         = departementRepository;
         this.passwordEncoder               = passwordEncoder;
         this.emailService                  = emailService;
-        this.fournisseurRepository =fournisseurRepository;
+        this.fournisseurRepository         = fournisseurRepository;
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -63,7 +63,7 @@ public class AdminUserServiceImpl implements AdminUserService {
             throw new RuntimeException("Un compte avec cet email existe déjà");
         }
 
-        // 2. Validation rôle autorisé (on n'accepte pas ADMIN ni FOURNISSEUR ici)
+        // 2. Validation rôle autorisé
         Role role = request.getRole();
         if (role == Role.ADMIN || role == Role.FOURNISSEUR) {
             throw new RuntimeException("Ce rôle ne peut pas être créé via cette interface");
@@ -75,7 +75,7 @@ public class AdminUserServiceImpl implements AdminUserService {
             throw new RuntimeException("Le département est obligatoire pour ce rôle");
         }
 
-        // 4. Génération du mot de passe aléatoire (8 premiers chars d'un UUID)
+        // 4. Génération du mot de passe aléatoire
         String plainPassword = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
 
         // 5. Création de l'entité User
@@ -83,9 +83,10 @@ public class AdminUserServiceImpl implements AdminUserService {
         user.setNom(request.getNom());
         user.setPrenom(request.getPrenom());
         user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(plainPassword)); // stocké haché
+        user.setPassword(passwordEncoder.encode(plainPassword));
         user.setRole(role);
         user.setStatus(Status.ACTIVE);
+        user.setMustChangePassword(true); // ← obligation au premier login
         User savedUser = userRepository.save(user);
 
         // 6. Création de l'entrée dans la table spécifique au rôle
@@ -103,13 +104,11 @@ public class AdminUserServiceImpl implements AdminUserService {
                 Departement dept = getDepartement(request.getDepartementId());
                 departementNom = dept.getNom();
 
-                // Vérifier qu'il n'y a pas déjà un chef pour ce département
                 if (chefDepartementRepository.existsByDepartementId(dept.getId())) {
                     throw new RuntimeException(
                             "Le département '" + dept.getNom() + "' a déjà un chef de département");
                 }
 
-                // Le chef est aussi enseignant => on crée les 2 entrées
                 Enseignant enseignant = new Enseignant();
                 enseignant.setUser(savedUser);
                 enseignant.setDepartement(dept);
@@ -134,7 +133,7 @@ public class AdminUserServiceImpl implements AdminUserService {
             default -> throw new RuntimeException("Rôle non géré : " + role);
         }
 
-        // 7. Envoi email avec le mot de passe en clair (avant encodage)
+        // 7. Envoi email avec le mot de passe en clair
         emailService.sendWelcomeEmailToUser(
                 savedUser.getEmail(),
                 savedUser.getNom(),
@@ -182,7 +181,6 @@ public class AdminUserServiceImpl implements AdminUserService {
     public UserListResponse modifierUtilisateur(Long id, UpdateUserRequest request) {
         User user = getUser(id);
 
-        // Si changement d'email, vérifier unicité
         if (!user.getEmail().equals(request.getEmail())
                 && userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Cet email est déjà utilisé par un autre compte");
@@ -201,7 +199,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     }
 
     // ──────────────────────────────────────────────────────────────────────────
-    // BLOQUER / DÉBLOQUER (toggle ACTIVE <-> INACTIVE)
+    // BLOQUER / DÉBLOQUER
     // ──────────────────────────────────────────────────────────────────────────
     @Override
     @Transactional
@@ -223,19 +221,17 @@ public class AdminUserServiceImpl implements AdminUserService {
     @Transactional
     public void supprimerUtilisateur(Long id) {
         User user = getUser(id);
-        // Suppression de l'entrée dans la table de rôle avant le User
         switch (user.getRole()) {
             case ENSEIGNANT -> enseignantRepository.findByUserId(id)
                     .ifPresent(enseignantRepository::delete);
             case CHEF_DEPARTEMENT -> {
-                // Supprimer chef (qui supprime aussi l'enseignant lié)
                 chefDepartementRepository.deleteByUserId(id);
                 enseignantRepository.findByUserId(id)
                         .ifPresent(enseignantRepository::delete);
             }
-            case TECHNICIEN          -> technicienRepository.deleteByUserId(id);
-            case RESPONSABLE_RESOURCE-> responsableResourceRepository.deleteByUserId(id);
-            case FOURNISSEUR -> fournisseurRepository.deleteByUserId(id);
+            case TECHNICIEN           -> technicienRepository.deleteByUserId(id);
+            case RESPONSABLE_RESOURCE -> responsableResourceRepository.deleteByUserId(id);
+            case FOURNISSEUR          -> fournisseurRepository.deleteByUserId(id);
             default -> { /* rien */ }
         }
         userRepository.delete(user);
@@ -244,7 +240,6 @@ public class AdminUserServiceImpl implements AdminUserService {
     // ──────────────────────────────────────────────────────────────────────────
     // Helpers privés
     // ──────────────────────────────────────────────────────────────────────────
-
     private User getUser(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable avec l'id : " + id));
@@ -255,7 +250,6 @@ public class AdminUserServiceImpl implements AdminUserService {
                 .orElseThrow(() -> new RuntimeException("Département introuvable avec l'id : " + id));
     }
 
-    /** Résout le nom du département pour l'affichage (null si sans département). */
     private String resolveDepartementNom(User user) {
         if (user.getRole() == Role.ENSEIGNANT || user.getRole() == Role.CHEF_DEPARTEMENT) {
             return enseignantRepository.findByUserId(user.getId())

@@ -32,11 +32,11 @@ public class User {
     @Column(nullable = false)
     private Status status;
 
-    // Constructeur vide (Hibernate obligatoire)
-    public User() {
-    }
+    @Column(nullable = false)
+    private boolean mustChangePassword = false;
 
-    // Constructeur avec paramètres
+    public User() {}
+
     public User(Long id, String nom, String prenom, String email,
                 String password, Role role, Status status) {
         this.id = id;
@@ -48,61 +48,29 @@ public class User {
         this.status = status;
     }
 
-    // Getters & Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public Long getId() {
-        return id;
-    }
+    public String getNom() { return nom; }
+    public void setNom(String nom) { this.nom = nom; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getPrenom() { return prenom; }
+    public void setPrenom(String prenom) { this.prenom = prenom; }
 
-    public String getNom() {
-        return nom;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public void setNom(String nom) {
-        this.nom = nom;
-    }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
-    public String getPrenom() {
-        return prenom;
-    }
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
 
-    public void setPrenom(String prenom) {
-        this.prenom = prenom;
-    }
+    public Status getStatus() { return status; }
+    public void setStatus(Status status) { this.status = status; }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
+    public boolean isMustChangePassword() { return mustChangePassword; }
+    public void setMustChangePassword(boolean mustChangePassword) {
+        this.mustChangePassword = mustChangePassword;
     }
 }
